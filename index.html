@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CinemaVault — Каталог фильмов</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="loading-screen">
+        <div class="loader">
+            <div class="loader-film-strip">
+                <div class="loader-frame"></div>
+                <div class="loader-frame"></div>
+                <div class="loader-frame"></div>
+                <div class="loader-frame"></div>
+                <div class="loader-frame"></div>
+                <div class="loader-frame"></div>
+            </div>
+            <p class="loader-text">Загрузка CinemaVault...</p>
+            <div class="loader-progress-bar">
+                <div class="loader-progress-fill" id="loader-progress"></div>
+            </div>
+        </div>
+    </div>
+    <div class="cursor-follower" id="cursor-follower"></div>
+    <header class="header" id="header">
+        <div class="header-inner">
+            <div class="logo">
+                <span class="logo-icon">CV</span>
+                <span class="logo-text">CinemaVault</span>
+            </div>
+            <nav class="nav" id="main-nav">
+                <a href="#home" class="nav-link active" data-section="home">Главная</a>
+                <a href="#catalog" class="nav-link" data-section="catalog">Каталог</a>
+                <a href="#picker" class="nav-link" data-section="picker">Подбор</a>
+                <a href="#quotes" class="nav-link" data-section="quotes">Цитаты</a>
+            </nav>
+            <div class="header-actions">
+                <button class="hamburger" id="hamburger">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </header>
+    <div class="scroll-progress" id="scroll-progress"></div>
+    <main>
+        <section class="hero" id="home">
+            <div class="hero-content">
+                <h1 class="hero-title">
+                    <span class="title-line">Открой мир</span>
+                    <span class="title-line title-accent">кинематографа</span>
+                </h1>
+                <p class="hero-subtitle">Более 500 фильмов в каталоге с рейтингами, трейлерами и подробностями</p>
+                <div class="hero-buttons">
+                    <a href="#catalog" class="btn btn-primary">Смотреть каталог</a>
+                    <button class="btn btn-secondary" id="random-pick-btn">Не знаю, что посмотреть</button>
+                </div>
+            </div>
+            <div class="hero-scroll-indicator">
+                <div class="mouse">
+                    <div class="wheel"></div>
+                </div>
+                <span>Листай вниз</span>
+            </div>
+        </section>
+    </main>
+    <script src="data.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>

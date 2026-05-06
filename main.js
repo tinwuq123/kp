@@ -187,3 +187,66 @@
 
     initRandomPick();
 })();
+
+function initSlider() {
+    const topMovies = MOVIES_DATA.filter(m => m.top5);
+    const track = document.getElementById('slider-track');
+    const dotsContainer = document.getElementById('slider-dots');
+    const prevBtn = document.getElementById('slider-prev');
+    const nextBtn = document.getElementById('slider-next');
+
+    topMovies.forEach(movie => {
+        const slide = document.createElement('div');
+        slide.style.minWidth = '300px';
+        slide.style.flexShrink = '0';
+        slide.innerHTML = `
+            <div style="position:relative;border-radius:12px;overflow:hidden;cursor:pointer;" class="slider-movie-card">
+                <img src="${movie.backdrop || movie.poster}" alt="${movie.title}" style="width:300px;height:170px;object-fit:cover;">
+                <div style="position:absolute;bottom:0;left:0;right:0;padding:16px;background:linear-gradient(to top,rgba(16,20,28,0.95),transparent);">
+                    <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:16px;margin-bottom:4px;">${movie.title}</div>
+                    <div style="font-size:13px;color:#A0A0A0;">${movie.year} · ${movie.genre[0]}</div>
+                    <div style="display:inline-flex;align-items:center;gap:4px;margin-top:6px;background:#F5C518;color:#10141C;padding:2px 10px;border-radius:50px;font-weight:700;font-size:13px;">${movie.rating > 0 ? movie.rating.toFixed(1) : '—'}</div>
+                </div>
+            </div>
+        `;
+        slide.addEventListener('click', () => openMovieModal(movie));
+        track.appendChild(slide);
+    });
+
+    topMovies.forEach((_, i) => {
+        const dot = document.createElement('div');
+        dot.className = 'slider-dot' + (i === 0 ? ' active' : '');
+        dot.addEventListener('click', () => goToSlide(i));
+        dotsContainer.appendChild(dot);
+    });
+
+    function goToSlide(index) {
+        state.sliderIndex = index;
+        const offset = index * 324; // 300 + 24 gap
+        track.style.transform = `translateX(-${offset}px)`;
+        dotsContainer.querySelectorAll('.slider-dot').forEach((d, i) => {
+            d.classList.toggle('active', i === index);
+        });
+    }
+
+    prevBtn.addEventListener('click', () => {
+        const idx = state.sliderIndex > 0 ? state.sliderIndex - 1 : topMovies.length - 1;
+        goToSlide(idx);
+    });
+
+    nextBtn.addEventListener('click', () => {
+        const idx = state.sliderIndex < topMovies.length - 1 ? state.sliderIndex + 1 : 0;
+        goToSlide(idx);
+    });
+
+    setInterval(() => {
+        const idx = state.sliderIndex < topMovies.length - 1 ? state.sliderIndex + 1 : 0;
+        goToSlide(idx);
+    }, 5000);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    if (typeof MOVIES_DATA !== 'undefined') {
+        initSlider();
+    }
+});

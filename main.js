@@ -47,18 +47,10 @@
         const addHover = () => follower.classList.add('hovering');
         const removeHover = () => follower.classList.remove('hovering');
 
-        document.querySelectorAll('a, button, .nav-link, .btn').forEach(el => {
+        document.querySelectorAll('a, button, .movie-card, .slider-movie-card').forEach(el => {
             el.addEventListener('mouseenter', addHover);
             el.addEventListener('mouseleave', removeHover);
         });
-
-        const observer = new MutationObserver(() => {
-            document.querySelectorAll('a, button, .nav-link, .btn').forEach(el => {
-                el.addEventListener('mouseenter', addHover);
-                el.addEventListener('mouseleave', removeHover);
-            });
-        });
-        observer.observe(document.body, { childList: true, subtree: true });
     }
     initCursorFollower();
 
@@ -137,20 +129,6 @@
     }
     initActiveNav();
 
-    function initRandomPick() {
-        const btn = document.getElementById('random-pick-btn');
-        if (btn) {
-            btn.addEventListener('click', () => {
-                if (typeof MOVIES_DATA !== 'undefined' && MOVIES_DATA.length > 0) {
-                    const randomMovie = MOVIES_DATA[Math.floor(Math.random() * MOVIES_DATA.length)];
-                    showToast(randomMovie.title);
-                } else {
-                    showToast('Фильмы загружаются...');
-                }
-            });
-        }
-    }
-
     function showToast(message) {
         let container = document.getElementById('toast-container');
         if (!container) {
@@ -178,161 +156,213 @@
         }, 3000);
     }
 
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            document.getElementById('hamburger')?.classList.remove('active');
-            document.getElementById('main-nav')?.classList.remove('open');
+    function initRandomPick() {
+        const btn = document.getElementById('random-pick-btn');
+        if (btn) {
+            btn.addEventListener('click', () => {
+                if (typeof MOVIES_DATA !== 'undefined' && MOVIES_DATA.length > 0) {
+                    const randomMovie = MOVIES_DATA[Math.floor(Math.random() * MOVIES_DATA.length)];
+                    openMovieModal(randomMovie);
+                    showToast('Вам выпал: ' + randomMovie.title);
+                } else {
+                    showToast('Фильмы загружаются...');
+                }
+            });
         }
-    });
+    }
 
-    initRandomPick();
-})();
-
-const state = {
-    favorites: JSON.parse(localStorage.getItem('cinemavault_favorites') || '[]'),
-    currentPage: 1,
-    moviesPerPage: 8,
-    filteredMovies: [...MOVIES_DATA],
-    currentGenre: 'all',
-    sliderIndex: 0,  
-    isSpinning: false,
-    wheelAngle: 0,
-    isLoading: false
-};
-
-function initSlider() {
-    const topMovies = MOVIES_DATA.filter(m => m.top5 === true);
-    const track = document.getElementById('slider-track');
-    const dotsContainer = document.getElementById('slider-dots');
-    const prevBtn = document.getElementById('slider-prev');
-    const nextBtn = document.getElementById('slider-next');
-    
-    if (!track || !dotsContainer || !prevBtn || !nextBtn || topMovies.length === 0) return;
-    
-    let currentIndex = 0;
-    let autoSlideInterval;
-    
-    track.innerHTML = '';
-    dotsContainer.innerHTML = '';
-    
-    topMovies.forEach((movie, index) => {
-        const slide = document.createElement('div');
-        slide.className = 'slider-slide';
-        slide.style.minWidth = '300px';
-        slide.style.flexShrink = '0';
-        slide.style.width = '300px';
+    function openMovieModal(movie) {
+        const modal = document.getElementById('movie-modal');
+        const content = document.getElementById('movie-modal-content');
         
-        const posterUrl = movie.poster || movie.backdrop || 'https://via.placeholder.com/300x170?text=No+Image';
+        if (!modal || !content) return;
         
-        slide.innerHTML = `
-            <div class="slider-movie-card" data-id="${movie.id}" data-index="${index}">
-                <img src="${posterUrl}" alt="${movie.title}" loading="lazy" onerror="this.src='https://via.placeholder.com/300x170?text=No+Image'">
-                <div class="slider-movie-overlay">
-                    <div class="slider-movie-title">${movie.title}</div>
-                    <div class="slider-movie-meta">${movie.year} · ${movie.genre[0] || movie.genre}</div>
-                    <div class="slider-movie-rating">⭐ ${movie.rating > 0 ? movie.rating.toFixed(1) : '—'}</div>
+        content.innerHTML = `
+            <img class="movie-modal-poster" src="${movie.poster || 'https://via.placeholder.com/300x450?text=No+Poster'}" alt="${movie.title}" onerror="this.src='https://via.placeholder.com/300x450?text=No+Image'">
+            <div class="movie-modal-title">${movie.title}</div>
+            <div class="movie-modal-year">${movie.year} · ${movie.duration || '—'}</div>
+            <div class="movie-modal-rating">⭐ ${movie.rating > 0 ? movie.rating.toFixed(1) : '—'}</div>
+            <div class="movie-modal-description">${movie.description || 'Описание отсутствует'}</div>
+            <div class="movie-modal-genres">
+                ${movie.genre.map(g => `<span class="genre-tag">${g}</span>`).join('')}
+            </div>
+            ${movie.cast ? `
+            <div class="movie-modal-cast">
+                <strong>В ролях:</strong>
+                <div class="cast-list">
+                    ${movie.cast.map(c => `<span class="cast-item">${c}</span>`).join('')}
+                </div>
+            </div>` : ''}
+        `;
+        
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+        const modal = document.getElementById('movie-modal');
+        if (modal) {
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    }
+
+    function createMovieCard(movie) {
+        const card = document.createElement('div');
+        card.className = 'movie-card';
+        card.innerHTML = `
+            <img class="movie-poster" src="${movie.poster || 'https://via.placeholder.com/300x450?text=No+Poster'}" alt="${movie.title}" onerror="this.src='https://via.placeholder.com/300x450?text=No+Image'">
+            <div class="movie-info">
+                <div class="movie-title">${movie.title}</div>
+                <div class="movie-meta">
+                    <span>${movie.year}</span>
+                    <span class="movie-rating">⭐ ${movie.rating > 0 ? movie.rating.toFixed(1) : '—'}</span>
                 </div>
             </div>
         `;
-        
-        const card = slide.querySelector('.slider-movie-card');
-        card.addEventListener('click', () => {
-            if (typeof openMovieModal === 'function') {
-                openMovieModal(movie);
-            } else {
-                console.log('Movie clicked:', movie.title);
-                showToast(movie.title);
-            }
-        });
-        
-        track.appendChild(slide);
-    });
-    
-    topMovies.forEach((_, i) => {
-        const dot = document.createElement('div');
-        dot.className = 'slider-dot' + (i === currentIndex ? ' active' : '');
-        dot.addEventListener('click', () => goToSlide(i));
-        dotsContainer.appendChild(dot);
-    });
-    
-    function goToSlide(index) {
-        currentIndex = index;
-        const slideWidth = 324; 
-        const offset = currentIndex * slideWidth;
-        track.style.transform = `translateX(-${offset}px)`;
-        
-        document.querySelectorAll('.slider-dot').forEach((dot, i) => {
-            dot.classList.toggle('active', i === currentIndex);
-        });
+        card.addEventListener('click', () => openMovieModal(movie));
+        return card;
     }
-    
-    function nextSlide() {
-        const nextIndex = currentIndex < topMovies.length - 1 ? currentIndex + 1 : 0;
-        goToSlide(nextIndex);
-    }
-    
-    function prevSlide() {
-        const prevIndex = currentIndex > 0 ? currentIndex - 1 : topMovies.length - 1;
-        goToSlide(prevIndex);
-    }
-    
-    prevBtn.addEventListener('click', () => {
-        stopAutoSlide();
-        prevSlide();
-        startAutoSlide();
-    });
-    
-    nextBtn.addEventListener('click', () => {
-        stopAutoSlide();
-        nextSlide();
-        startAutoSlide();
-    });
-    
-    function startAutoSlide() {
-        stopAutoSlide();
-        autoSlideInterval = setInterval(nextSlide, 5000);
-    }
-    
-    function stopAutoSlide() {
-        if (autoSlideInterval) {
-            clearInterval(autoSlideInterval);
-            autoSlideInterval = null;
-        }
-    }
-    
-    const sliderWrapper = document.querySelector('.slider-wrapper');
-    if (sliderWrapper) {
-        sliderWrapper.addEventListener('mouseenter', stopAutoSlide);
-        sliderWrapper.addEventListener('mouseleave', startAutoSlide);
-    }
-    
-    let touchStartX = 0;
-    let touchEndX = 0;
-    
-    track.addEventListener('touchstart', (e) => {
-        touchStartX = e.changedTouches[0].screenX;
-        stopAutoSlide();
-    });
-    
-    track.addEventListener('touchend', (e) => {
-        touchEndX = e.changedTouches[0].screenX;
-        const swipeThreshold = 50;
-        
-        if (touchStartX - touchEndX > swipeThreshold) {
-            nextSlide();
-        } else if (touchEndX - touchStartX > swipeThreshold) {
-            prevSlide();
-        }
-        startAutoSlide();
-    });
-    
-    startAutoSlide();
-    goToSlide(0);
-}
 
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM загружен');
-    setTimeout(function() {
+    function renderMovies() {
+        const theatersGrid = document.getElementById('theaters-grid');
+        if (theatersGrid) {
+            const theaters = MOVIES_DATA.filter(m => m.inTheaters === true);
+            theatersGrid.innerHTML = '';
+            theaters.forEach(movie => theatersGrid.appendChild(createMovieCard(movie)));
+        }
+
+        const comingGrid = document.getElementById('coming-grid');
+        if (comingGrid) {
+            const comingSoon = MOVIES_DATA.filter(m => m.comingSoon === true);
+            comingGrid.innerHTML = '';
+            comingSoon.forEach(movie => comingGrid.appendChild(createMovieCard(movie)));
+        }
+    }
+
+    function initSlider() {
+        const topMovies = MOVIES_DATA.filter(m => m.top5 === true);
+        const track = document.getElementById('slider-track');
+        const dotsContainer = document.getElementById('slider-dots');
+        const prevBtn = document.getElementById('slider-prev');
+        const nextBtn = document.getElementById('slider-next');
+        
+        if (!track || !dotsContainer || !prevBtn || !nextBtn || topMovies.length === 0) return;
+        
+        let currentIndex = 0;
+        let autoSlideInterval;
+        
+        track.innerHTML = '';
+        dotsContainer.innerHTML = '';
+        
+        topMovies.forEach((movie, index) => {
+            const slide = document.createElement('div');
+            slide.className = 'slider-slide';
+            slide.style.minWidth = '300px';
+            slide.style.flexShrink = '0';
+            slide.style.width = '300px';
+            
+            const posterUrl = movie.poster || movie.backdrop || 'https://via.placeholder.com/300x170?text=No+Image';
+            
+            slide.innerHTML = `
+                <div class="slider-movie-card" data-id="${movie.id}">
+                    <img src="${posterUrl}" alt="${movie.title}" loading="lazy" onerror="this.src='https://via.placeholder.com/300x170?text=No+Image'">
+                    <div class="slider-movie-overlay">
+                        <div class="slider-movie-title">${movie.title}</div>
+                        <div class="slider-movie-meta">${movie.year} · ${movie.genre[0] || movie.genre}</div>
+                        <div class="slider-movie-rating">⭐ ${movie.rating > 0 ? movie.rating.toFixed(1) : '—'}</div>
+                    </div>
+                </div>
+            `;
+            
+            const card = slide.querySelector('.slider-movie-card');
+            card.addEventListener('click', () => openMovieModal(movie));
+            track.appendChild(slide);
+        });
+        
+        topMovies.forEach((_, i) => {
+            const dot = document.createElement('div');
+            dot.className = 'slider-dot' + (i === currentIndex ? ' active' : '');
+            dot.addEventListener('click', () => goToSlide(i));
+            dotsContainer.appendChild(dot);
+        });
+        
+        function goToSlide(index) {
+            currentIndex = index;
+            const slideWidth = 324;
+            const offset = currentIndex * slideWidth;
+            track.style.transform = `translateX(-${offset}px)`;
+            
+            document.querySelectorAll('.slider-dot').forEach((dot, i) => {
+                dot.classList.toggle('active', i === currentIndex);
+            });
+        }
+        
+        function nextSlide() {
+            const nextIndex = currentIndex < topMovies.length - 1 ? currentIndex + 1 : 0;
+            goToSlide(nextIndex);
+        }
+        
+        function prevSlide() {
+            const prevIndex = currentIndex > 0 ? currentIndex - 1 : topMovies.length - 1;
+            goToSlide(prevIndex);
+        }
+        
+        prevBtn.addEventListener('click', () => {
+            stopAutoSlide();
+            prevSlide();
+            startAutoSlide();
+        });
+        
+        nextBtn.addEventListener('click', () => {
+            stopAutoSlide();
+            nextSlide();
+            startAutoSlide();
+        });
+        
+        function startAutoSlide() {
+            stopAutoSlide();
+            autoSlideInterval = setInterval(nextSlide, 5000);
+        }
+        
+        function stopAutoSlide() {
+            if (autoSlideInterval) {
+                clearInterval(autoSlideInterval);
+                autoSlideInterval = null;
+            }
+        }
+        
+        const sliderWrapper = document.querySelector('.slider-wrapper');
+        if (sliderWrapper) {
+            sliderWrapper.addEventListener('mouseenter', stopAutoSlide);
+            sliderWrapper.addEventListener('mouseleave', startAutoSlide);
+        }
+        
+        startAutoSlide();
+        goToSlide(0);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        initLoadingScreen();
+        initCursorFollower();
+        initHeaderScroll();
+        initMobileNav();
+        initSmoothScroll();
+        initActiveNav();
+        initRandomPick();
+        renderMovies();
         initSlider();
-    }, 100);
-});
+        
+        const modalClose = document.getElementById('modal-close');
+        const modalOverlay = document.getElementById('movie-modal');
+        if (modalClose) modalClose.addEventListener('click', closeModal);
+        if (modalOverlay) {
+            modalOverlay.addEventListener('click', (e) => {
+                if (e.target === modalOverlay) closeModal();
+            });
+        }
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+        });
+    });
+})();

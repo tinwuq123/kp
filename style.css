@@ -478,30 +478,27 @@ body {
 
 .slider-controls {
     display: flex;
-    gap: 12px;
-    align-items: center;
+    gap: 8px;
 }
 
 .slider-btn {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: rgba(26, 31, 46, 0.9);
-    border: 1px solid rgba(245, 197, 24, 0.3);
-    color: #F5C518;
+    width: 44px;
+    height: 44px;
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text-white);
+    border-radius: var(--radius-sm);
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.3s ease;
-    backdrop-filter: blur(4px);
+    transition: all var(--transition);
 }
 
 .slider-btn:hover {
-    background: #F5C518;
-    color: #0a0e17;
-    border-color: #F5C518;
-    transform: scale(1.1);
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--bg-primary);
 }
 
 .slider-btn:active {
@@ -529,13 +526,13 @@ body {
     width: 10px;
     height: 10px;
     border-radius: 50%;
-    background: var(--border, #2a2f45);
+    background: var(--border);
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all var(--transition);
 }
 
 .slider-dot.active {
-    background: #F5C518;
+    background: var(--accent);
     transform: scale(1.3);
 }
 

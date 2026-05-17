@@ -12,9 +12,11 @@ const MOVIES_DATA = [
         director: "Дени Вильнёв",
         description: "Пол Атрейдес объединяется с фрименами, чтобы отомстить за свою семью и спасти вселенную.",
         cast: ["Тимоти Шаламе", "Зендея", "Остин Батлер"],
+        age: "16+",
         top5: true,
         inTheaters: true,
-        comingSoon: false
+        comingSoon: false,
+        trailerFile: "дюна.mp4"
     },
     { 
         id: 2, 
@@ -29,9 +31,11 @@ const MOVIES_DATA = [
         director: "Кристофер Нолан",
         description: "История создания атомной бомбы и человека, который изменил ход истории.",
         cast: ["Киллиан Мёрфи", "Роберт Дауни мл.", "Эмили Блант"],
+        age: "18+",
         top5: true,
         inTheaters: false,
-        comingSoon: false
+        comingSoon: false,
+        trailerFile: "опен.mp4"
     },
     { 
         id: 3, 
@@ -46,9 +50,11 @@ const MOVIES_DATA = [
         director: "Кристофер Нолан",
         description: "Команда исследователей отправляется через червоточину в поисках нового дома для человечества.",
         cast: ["Мэттью Макконахи", "Энн Хэтэуэй", "Джессика Честейн"],
+        age: "12+",
         top5: true,
         inTheaters: false,
-        comingSoon: true
+        comingSoon: false,
+        trailerFile: "инт.mp4"
     },
     { 
         id: 4, 
@@ -63,9 +69,11 @@ const MOVIES_DATA = [
         director: "Фрэнк Дарабонт",
         description: "Бухгалтер Энди Дюфрейн оказывается в тюрьме за преступление, которого не совершал.",
         cast: ["Тим Роббинс", "Морган Фриман"],
+        age: "16+",
         top5: true,
         inTheaters: false,
-        comingSoon: false
+        comingSoon: false,
+        trailerFile: "поб.mp4"
     },
     { 
         id: 5, 
@@ -80,9 +88,11 @@ const MOVIES_DATA = [
         director: "Кристофер Нолан",
         description: "Вор, крадущий секреты из снов, получает задание внедрить идею в чужое подсознание.",
         cast: ["Леонардо ДиКаприо", "Том Харди", "Эллиот Пейдж"],
+        age: "12+",
         top5: true,
         inTheaters: false,
-        comingSoon: false
+        comingSoon: false,
+        trailerFile: "нач.mp4"
     },
     { 
         id: 6, 
@@ -97,9 +107,11 @@ const MOVIES_DATA = [
         director: "Тодд Филлипс",
         description: "История становления одного из самых известных злодеев Готэма.",
         cast: ["Хоакин Феникс", "Роберт Де Ниро"],
+        age: "18+",
         top5: false,
-        inTheaters: false,
-        comingSoon: false
+        inTheaters: true,
+        comingSoon: false,
+        trailerFile: "джок.mp4"
     },
     { 
         id: 7, 
@@ -114,9 +126,11 @@ const MOVIES_DATA = [
         director: "Лана и Лилли Вачовски",
         description: "Хакер Нео узнаёт, что его реальность — это симуляция.",
         cast: ["Киану Ривз", "Лоуренс Фишбёрн"],
+        age: "16+",
         top5: false,
         inTheaters: false,
-        comingSoon: false
+        comingSoon: false,
+        trailerFile: "матр.mp4"
     },
     { 
         id: 8, 
@@ -131,9 +145,11 @@ const MOVIES_DATA = [
         director: "Пон Джун-хо",
         description: "Семья Ки Тхэков живёт в полуподвале и еле сводит концы с концами.",
         cast: ["Сон Кан-хо", "Чхве У-шк"],
+        age: "18+",
         top5: false,
         inTheaters: false,
-        comingSoon: false
+        comingSoon: false,
+        trailerFile: "пар.mp4"
     },
     { 
         id: 9, 
@@ -148,9 +164,11 @@ const MOVIES_DATA = [
         director: "Энтони и Джо Руссо",
         description: "Оставшиеся Мстители собираются вместе, чтобы обратить последствия щелчка Таноса.",
         cast: ["Роберт Дауни мл.", "Крис Эванс"],
+        age: "12+",
         top5: false,
         inTheaters: false,
-        comingSoon: false
+        comingSoon: false,
+        trailerFile: "мст.mp4"
     },
     { 
         id: 10, 
@@ -165,9 +183,11 @@ const MOVIES_DATA = [
         director: "Келси Манн",
         description: "Райли вступает в подростковый возраст, и у неё появляются новые эмоции.",
         cast: ["Эми Полер", "Майя Хоук"],
+        age: "6+",
         top5: false,
         inTheaters: true,
-        comingSoon: false
+        comingSoon: false,
+        trailerFile: "гол.mp4"
     },
     { 
         id: 11, 
@@ -182,9 +202,11 @@ const MOVIES_DATA = [
         director: "Шон Леви",
         description: "Дэдпул объединяется с Росомахой для эпического приключения.",
         cast: ["Райан Рейнольдс", "Хью Джекман"],
+        age: "18+",
         top5: false,
         inTheaters: true,
-        comingSoon: false
+        comingSoon: false,
+        trailerFile: "дэдп.mp4"
     },
     { 
         id: 12, 
@@ -199,9 +221,11 @@ const MOVIES_DATA = [
         director: "Феде Альварес",
         description: "Группа колонизаторов сталкивается с ужасающей формой жизни на космической станции.",
         cast: ["Кейли Спейни", "Дэвид Йонссон"],
+        age: "18+",
         top5: false,
         inTheaters: true,
-        comingSoon: false
+        comingSoon: false,
+        trailerFile: "чуж.mp4"
     },
     { 
         id: 13, 
@@ -216,9 +240,11 @@ const MOVIES_DATA = [
         director: "Джеймс Кэмерон",
         description: "Продолжение эпической саги на Пандоре.",
         cast: ["Сэм Уортингтон", "Зои Салдана"],
+        age: "12+",
         top5: false,
         inTheaters: false,
-        comingSoon: true
+        comingSoon: true,
+        trailerFile: "ават.mp4"
     },
     { 
         id: 14, 
@@ -233,9 +259,11 @@ const MOVIES_DATA = [
         director: "Энтони и Джо Руссо",
         description: "Новая эпоха Мстителей начинается.",
         cast: ["Роберт Дауни мл."],
+        age: "12+",
         top5: false,
         inTheaters: false,
-        comingSoon: true
+        comingSoon: true,
+        trailerFile: "мстт.mp4"
     },
     { 
         id: 15, 
@@ -250,9 +278,11 @@ const MOVIES_DATA = [
         director: "Мэтт Ривз",
         description: "Брюс Уэйн продолжает борьбу с преступностью в Готэме.",
         cast: ["Роберт Паттинсон", "Зои Кравиц"],
+        age: "16+",
         top5: false,
         inTheaters: false,
-        comingSoon: true
+        comingSoon: true,
+        trailerFile: "бэтм.mp4"
     },
     { 
         id: 16, 
@@ -267,9 +297,11 @@ const MOVIES_DATA = [
         director: "Луис Летерье",
         description: "Дом Торетто и его семья возвращаются для финальной гонки.",
         cast: ["Вин Дизель"],
+        age: "12+",
         top5: false,
         inTheaters: false,
-        comingSoon: true
+        comingSoon: true,
+        trailerFile: "форс.mp4"
     },
     { 
         id: 17, 
@@ -284,9 +316,11 @@ const MOVIES_DATA = [
         director: "Кристофер Нолан",
         description: "Бэтмен поднимает ставки в войне с криминалом.",
         cast: ["Кристиан Бейл", "Хит Леджер"],
+        age: "16+",
         top5: false,
         inTheaters: false,
-        comingSoon: false
+        comingSoon: false,
+        trailerFile: "темн.mp4"
     },
     { 
         id: 18, 
@@ -301,9 +335,11 @@ const MOVIES_DATA = [
         director: "Дэвид Финчер",
         description: "Офисный работник и торговец мылом создают подпольный бойцовский клуб.",
         cast: ["Брэд Питт", "Эдвард Нортон"],
+        age: "18+",
         top5: false,
         inTheaters: false,
-        comingSoon: false
+        comingSoon: false,
+        trailerFile: "бойц.mp4"
     },
     { 
         id: 19, 
@@ -318,9 +354,11 @@ const MOVIES_DATA = [
         director: "Стивен Спилберг",
         description: "История Оскара Шиндлера, спасшего более тысячи евреев во время Холокоста.",
         cast: ["Лиам Нисон", "Рэйф Файнс"],
+        age: "16+",
         top5: false,
         inTheaters: false,
-        comingSoon: false
+        comingSoon: false,
+        trailerFile: "спи.mp4"
     },
     { 
         id: 20, 
@@ -335,9 +373,11 @@ const MOVIES_DATA = [
         director: "Фрэнсис Форд Коппола",
         description: "История семьи Корлеоне — одного из самых могущественных кланов мафии.",
         cast: ["Марлон Брандо", "Аль Пачино"],
+        age: "18+",
         top5: false,
         inTheaters: false,
-        comingSoon: false
+        comingSoon: false,
+        trailerFile: "крест.mp4"
     }
 ];
 

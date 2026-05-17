@@ -35,10 +35,19 @@
             <nav class="nav" id="main-nav">
                 <a href="#home" class="nav-link active" data-section="home">Главная</a>
                 <a href="#catalog" class="nav-link" data-section="catalog">Каталог</a>
-                <a href="#picker" class="nav-link" data-section="picker">Подбор</a>
-                <a href="#quotes" class="nav-link" data-section="quotes">Цитаты</a>
             </nav>
             <div class="header-actions">
+                <button class="btn-icon" id="favorites-btn" title="Избранное (0)">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                    </svg>
+                </button>
+                <button class="btn-icon" id="contact-btn" title="Обратная связь">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                        <polyline points="22,6 12,13 2,6"></polyline>
+                    </svg>
+                </button>
                 <button class="hamburger" id="hamburger">
                     <span></span>
                     <span></span>
@@ -82,8 +91,7 @@
                     </div>
                 </div>
                 <div class="slider-wrapper" id="slider-wrapper">
-                    <div class="slider-track" id="slider-track">
-                    </div>
+                    <div class="slider-track" id="slider-track"></div>
                 </div>
                 <div class="slider-dots" id="slider-dots"></div>
             </div>
@@ -120,8 +128,8 @@
                     </div>
                     <div class="sort-controls">
                         <select id="sort-select" class="sort-select">
-                            <option value="rating">По рейтингу ↓</option>
-                            <option value="year">По году (новые)</option>
+                            <option value="rating">По рейтингу</option>
+                            <option value="year">По году</option>
                             <option value="title">По названию</option>
                         </select>
                     </div>
@@ -133,10 +141,47 @@
             </div>
         </section>
     </main>
-        <div class="modal-overlay" id="movie-modal">
+    <div class="modal-overlay" id="movie-modal">
         <div class="modal movie-modal">
-            <button class="modal-close" id="modal-close">×</button>
+            <button class="modal-close" id="movie-modal-close">×</button>
             <div class="movie-modal-content" id="movie-modal-content"></div>
+        </div>
+    </div>
+    <div class="modal-overlay" id="favorites-modal">
+        <div class="modal favorites-modal">
+            <button class="modal-close" id="favorites-modal-close">×</button>
+            <h2>Избранное</h2>
+            <div class="favorites-list" id="favorites-list"></div>
+        </div>
+    </div>
+    <div class="modal-overlay" id="contact-modal">
+        <div class="modal contact-modal">
+            <button class="modal-close" id="contact-modal-close">×</button>
+            <h2>Обратная связь</h2>
+            <form id="contact-form" class="contact-form">
+                <div class="form-group">
+                    <label for="form-name">Имя</label>
+                    <input type="text" id="form-name" placeholder="Ваше имя" required>
+                </div>
+                <div class="form-group">
+                    <label for="form-email">Email</label>
+                    <input type="email" id="form-email" placeholder="your@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="form-message">Сообщение</label>
+                    <textarea id="form-message" rows="4" placeholder="Ваше сообщение..." required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary form-submit-btn">Отправить</button>
+            </form>
+        </div>
+    </div>
+    <div class="modal-overlay" id="video-modal">
+        <div class="modal video-modal">
+            <button class="modal-close" id="video-modal-close">×</button>
+            <video id="trailer-video" controls width="100%" style="border-radius:12px;">
+                <source src="" type="video/mp4">
+                Ваш браузер не поддерживает видео
+            </video>
         </div>
     </div>
     <div class="toast-container" id="toast-container"></div>

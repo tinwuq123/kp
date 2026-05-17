@@ -5,6 +5,7 @@
     let currentGenre = 'all';
     let currentSort = 'rating';
     let searchTerm = '';
+    let favorites = JSON.parse(localStorage.getItem('cinemavault_favorites') || '[]');
 
     function initLoadingScreen() {
         const loadingScreen = document.getElementById('loading-screen');
@@ -134,7 +135,7 @@
     }
     initActiveNav();
 
-    function showToast(message) {
+    function showToast(message, type = 'info') {
         let container = document.getElementById('toast-container');
         if (!container) {
             container = document.createElement('div');
@@ -165,15 +166,35 @@
         const btn = document.getElementById('random-pick-btn');
         if (btn) {
             btn.addEventListener('click', () => {
-                if (typeof MOVIES_DATA !== 'undefined' && MOVIES_DATA.length > 0) {
-                    const randomMovie = MOVIES_DATA[Math.floor(Math.random() * MOVIES_DATA.length)];
-                    openMovieModal(randomMovie);
-                    showToast('Вам выпал: ' + randomMovie.title);
-                } else {
-                    showToast('Фильмы загружаются...');
-                }
+                const randomMovie = MOVIES_DATA[Math.floor(Math.random() * MOVIES_DATA.length)];
+                openMovieModal(randomMovie);
+                showToast('Вам выпал: ' + randomMovie.title);
             });
         }
+    }
+
+    function openVideoModal(videoFile) {
+        const modal = document.getElementById('video-modal');
+        const video = document.getElementById('trailer-video');
+        const source = video.querySelector('source');
+        
+        if (source) {
+            source.src = videoFile;
+            video.load();
+        }
+        
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        video.play();
+    }
+
+    function closeVideoModal() {
+        const modal = document.getElementById('video-modal');
+        const video = document.getElementById('trailer-video');
+        
+        modal.classList.remove('active');
+        video.pause();
+        document.body.style.overflow = '';
     }
 
     function openMovieModal(movie) {
@@ -181,6 +202,8 @@
         const content = document.getElementById('movie-modal-content');
         
         if (!modal || !content) return;
+        
+        const trailerFile = movie.trailerFile || 'trailers/default.mp4';
         
         content.innerHTML = `
             <img class="movie-modal-poster" src="${movie.poster || 'https://via.placeholder.com/300x450?text=No+Poster'}" alt="${movie.title}" onerror="this.src='https://via.placeholder.com/300x450?text=No+Image'">
@@ -198,13 +221,24 @@
                     ${movie.cast.map(c => `<span class="cast-item">${c}</span>`).join('')}
                 </div>
             </div>` : ''}
+            <div class="movie-modal-trailer">
+                <button class="trailer-btn" id="play-trailer-btn">▶ Смотреть трейлер</button>
+            </div>
         `;
         
         modal.classList.add('active');
         document.body.style.overflow = 'hidden';
+        
+        const trailerBtn = document.getElementById('play-trailer-btn');
+        if (trailerBtn) {
+            trailerBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                openVideoModal(trailerFile);
+            });
+        }
     }
 
-    function closeModal() {
+    function closeMovieModal() {
         const modal = document.getElementById('movie-modal');
         if (modal) {
             modal.classList.remove('active');
@@ -213,6 +247,7 @@
     }
 
     function createMovieCard(movie) {
+        const isFav = favorites.includes(movie.id);
         const card = document.createElement('div');
         card.className = 'movie-card';
         card.innerHTML = `
@@ -224,9 +259,126 @@
                     <span class="movie-rating">⭐ ${movie.rating > 0 ? movie.rating.toFixed(1) : '—'}</span>
                 </div>
             </div>
+            <button class="card-fav-btn ${isFav ? 'active' : ''}" data-id="${movie.id}">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="${isFav ? '#ef4444' : 'none'}" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+            </button>
         `;
+        
+        const favBtn = card.querySelector('.card-fav-btn');
+        favBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleFavorite(movie.id, favBtn);
+        });
+        
         card.addEventListener('click', () => openMovieModal(movie));
         return card;
+    }
+
+    function toggleFavorite(movieId, btn) {
+        const index = favorites.indexOf(movieId);
+        if (index === -1) {
+            favorites.push(movieId);
+            btn.classList.add('active');
+            btn.querySelector('svg').setAttribute('fill', '#ef4444');
+            showToast('Добавлено в избранное');
+        } else {
+            favorites.splice(index, 1);
+            btn.classList.remove('active');
+            btn.querySelector('svg').setAttribute('fill', 'none');
+            showToast('Удалено из избранного');
+        }
+        localStorage.setItem('cinemavault_favorites', JSON.stringify(favorites));
+        updateFavButtonCount();
+    }
+
+    function showFavoritesModal() {
+        const modal = document.getElementById('favorites-modal');
+        const list = document.getElementById('favorites-list');
+        
+        if (favorites.length === 0) {
+            list.innerHTML = '<p style="color:#9CA3AF;text-align:center;padding:40px;">Нет избранных фильмов</p>';
+        } else {
+            list.innerHTML = '';
+            favorites.forEach(id => {
+                const movie = MOVIES_DATA.find(m => m.id === id);
+                if (movie) {
+                    const item = document.createElement('div');
+                    item.className = 'fav-item';
+                    item.innerHTML = `
+                        <img class="fav-item-poster" src="${movie.poster}" alt="${movie.title}">
+                        <div class="fav-item-info">
+                            <div class="fav-item-title">${movie.title}</div>
+                            <div class="fav-item-year">${movie.year} · ⭐ ${movie.rating}</div>
+                        </div>
+                        <button class="fav-remove-btn" data-id="${movie.id}">×</button>
+                    `;
+                    item.querySelector('.fav-remove-btn').addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const idx = favorites.indexOf(movie.id);
+                        if (idx !== -1) {
+                            favorites.splice(idx, 1);
+                            localStorage.setItem('cinemavault_favorites', JSON.stringify(favorites));
+                            showFavoritesModal();
+                            updateFavButtonCount();
+                            showToast('Удалено из избранного');
+                        }
+                    });
+                    item.addEventListener('click', () => {
+                        closeFavoritesModal();
+                        openMovieModal(movie);
+                    });
+                    list.appendChild(item);
+                }
+            });
+        }
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeFavoritesModal() {
+        const modal = document.getElementById('favorites-modal');
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    function openContactModal() {
+        const modal = document.getElementById('contact-modal');
+        if (modal) {
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        } else {
+            showToast('Форма обратной связи временно недоступна');
+        }
+    }
+
+    function closeContactModal() {
+        const modal = document.getElementById('contact-modal');
+        if (modal) modal.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    function initContactForm() {
+        const form = document.getElementById('contact-form');
+        if (form) {
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const name = document.getElementById('form-name')?.value || '';
+                const email = document.getElementById('form-email')?.value || '';
+                const message = document.getElementById('form-message')?.value || '';
+                
+                console.log('Сообщение:', { name, email, message });
+                showToast('Сообщение отправлено! Спасибо, ' + name);
+                form.reset();
+                closeContactModal();
+            });
+        }
+    }
+
+    function updateFavButtonCount() {
+        const favBtn = document.getElementById('favorites-btn');
+        if (favBtn) {
+            favBtn.setAttribute('title', 'Избранное (' + favorites.length + ')');
+        }
     }
 
     function renderMovies() {
@@ -441,17 +593,59 @@
         renderMovies();
         initCatalogFilters();
         initSlider();
+        initContactForm();
         
-        const modalClose = document.getElementById('modal-close');
-        const modalOverlay = document.getElementById('movie-modal');
-        if (modalClose) modalClose.addEventListener('click', closeModal);
-        if (modalOverlay) {
-            modalOverlay.addEventListener('click', (e) => {
-                if (e.target === modalOverlay) closeModal();
+        const favBtn = document.getElementById('favorites-btn');
+        if (favBtn) favBtn.addEventListener('click', showFavoritesModal);
+        
+        const contactBtn = document.getElementById('contact-btn');
+        if (contactBtn) contactBtn.addEventListener('click', openContactModal);
+        
+        const movieModalClose = document.getElementById('movie-modal-close');
+        const movieModalOverlay = document.getElementById('movie-modal');
+        if (movieModalClose) movieModalClose.addEventListener('click', closeMovieModal);
+        if (movieModalOverlay) {
+            movieModalOverlay.addEventListener('click', (e) => {
+                if (e.target === movieModalOverlay) closeMovieModal();
             });
         }
+        
+        const videoModalClose = document.getElementById('video-modal-close');
+        const videoModalOverlay = document.getElementById('video-modal');
+        if (videoModalClose) videoModalClose.addEventListener('click', closeVideoModal);
+        if (videoModalOverlay) {
+            videoModalOverlay.addEventListener('click', (e) => {
+                if (e.target === videoModalOverlay) closeVideoModal();
+            });
+        }
+        
+        const favModalClose = document.getElementById('favorites-modal-close');
+        const favModalOverlay = document.getElementById('favorites-modal');
+        if (favModalClose) favModalClose.addEventListener('click', closeFavoritesModal);
+        if (favModalOverlay) {
+            favModalOverlay.addEventListener('click', (e) => {
+                if (e.target === favModalOverlay) closeFavoritesModal();
+            });
+        }
+        
+        const contactModalClose = document.getElementById('contact-modal-close');
+        const contactModalOverlay = document.getElementById('contact-modal');
+        if (contactModalClose) contactModalClose.addEventListener('click', closeContactModal);
+        if (contactModalOverlay) {
+            contactModalOverlay.addEventListener('click', (e) => {
+                if (e.target === contactModalOverlay) closeContactModal();
+            });
+        }
+        
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') closeModal();
+            if (e.key === 'Escape') {
+                closeMovieModal();
+                closeVideoModal();
+                closeFavoritesModal();
+                closeContactModal();
+            }
         });
+        
+        updateFavButtonCount();
     });
 })();

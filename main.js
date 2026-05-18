@@ -594,6 +594,7 @@
         initCatalogFilters();
         initSlider();
         initContactForm();
+        initWheelPicker();
         
         const favBtn = document.getElementById('favorites-btn');
         if (favBtn) favBtn.addEventListener('click', showFavoritesModal);
@@ -648,4 +649,169 @@
         
         updateFavButtonCount();
     });
+
+        function initWheelPicker() {
+        const canvas = document.getElementById('wheel-canvas');
+        if (!canvas) return;
+        
+        const ctx = canvas.getContext('2d');
+        const spinBtn = document.getElementById('spin-btn');
+        const pickerGenre = document.getElementById('picker-genre');
+        const resultDiv = document.getElementById('picker-result');
+        
+        let wheelMovies = [];
+        let wheelAngle = 0;
+        let isSpinning = false;
+        
+        const allGenres = new Set();
+        MOVIES_DATA.forEach(m => m.genre.forEach(g => allGenres.add(g)));
+        allGenres.forEach(g => {
+            const opt = document.createElement('option');
+            opt.value = g;
+            opt.textContent = g;
+            pickerGenre.appendChild(opt);
+        });
+        
+        function getFilteredMovies() {
+            const genre = pickerGenre.value;
+            if (genre === 'all') {
+                return MOVIES_DATA.filter(m => m.rating > 0);
+            }
+            return MOVIES_DATA.filter(m => m.genre.includes(genre) && m.rating > 0);
+        }
+        
+        function drawWheel() {
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = Math.min(centerX, centerY) - 10;
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            if (wheelMovies.length === 0) {
+                ctx.fillStyle = '#9CA3AF';
+                ctx.font = '16px Inter';
+                ctx.textAlign = 'center';
+                ctx.fillText('Нет фильмов в этом жанре', centerX, centerY);
+                return;
+            }
+            
+            const sliceAngle = (2 * Math.PI) / wheelMovies.length;
+            const colors = ['#F5C518', '#e0b400', '#c49d00', '#a88600', '#8c6f00', '#705800', '#F5C518', '#e0b400', '#c49d00', '#a88600'];
+            
+            wheelMovies.forEach((movie, i) => {
+                const startAngle = wheelAngle + i * sliceAngle;
+                const endAngle = startAngle + sliceAngle;
+                
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+                ctx.closePath();
+                ctx.fillStyle = colors[i % colors.length];
+                ctx.fill();
+                
+                ctx.strokeStyle = '#1a1f2e';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(startAngle + sliceAngle / 2);
+                ctx.textAlign = 'right';
+                ctx.fillStyle = '#1a1f2e';
+                ctx.font = 'bold 11px Montserrat';
+                let text = movie.title;
+                if (text.length > 14) text = text.substring(0, 12) + '...';
+                ctx.fillText(text, radius - 15, 5);
+                ctx.restore();
+            });
+            
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 35, 0, 2 * Math.PI);
+            ctx.fillStyle = '#1a1f2e';
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 30, 0, 2 * Math.PI);
+            ctx.fillStyle = '#F5C518';
+            ctx.fill();
+            
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY - radius - 8);
+            ctx.lineTo(centerX - 12, centerY - radius + 12);
+            ctx.lineTo(centerX + 12, centerY - radius + 12);
+            ctx.closePath();
+            ctx.fillStyle = '#F5C518';
+            ctx.fill();
+        }
+        
+        function spinWheel() {
+            if (isSpinning) return;
+            
+            wheelMovies = getFilteredMovies();
+            if (wheelMovies.length === 0) {
+                showToast('Нет фильмов для выбора', 'error');
+                return;
+            }
+            
+            isSpinning = true;
+            resultDiv.innerHTML = '';
+            
+            const totalSpin = Math.random() * 360 + 360 * 4;
+            const duration = 3500;
+            const startTime = performance.now();
+            const startAngle = wheelAngle;
+            
+            function easeOutCubic(t) {
+                return 1 - Math.pow(1 - t, 3);
+            }
+            
+            function animate(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const eased = easeOutCubic(progress);
+                
+                wheelAngle = startAngle + (totalSpin * eased * Math.PI / 180);
+                drawWheel();
+                
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    const sliceAngle = (2 * Math.PI) / wheelMovies.length;
+                    const pointerAngle = -Math.PI / 2;
+                    let normalizedAngle = (pointerAngle - wheelAngle) % (2 * Math.PI);
+                    if (normalizedAngle < 0) normalizedAngle += 2 * Math.PI;
+                    const winnerIndex = Math.floor(normalizedAngle / sliceAngle);
+                    const winner = wheelMovies[winnerIndex % wheelMovies.length];
+                    
+                    resultDiv.innerHTML = `
+                        <div class="picker-result-movie">
+                            <div class="picker-result-title">${winner.title}</div>
+                            <div class="picker-result-meta">${winner.year} · ${winner.genre.join(', ')} · ⭐ ${winner.rating}</div>
+                            <button class="btn btn-primary winner-details-btn" style="margin-top:12px;">Подробнее</button>
+                        </div>
+                    `;
+                    
+                    const detailsBtn = resultDiv.querySelector('.winner-details-btn');
+                    if (detailsBtn) {
+                        detailsBtn.addEventListener('click', () => openMovieModal(winner));
+                    }
+                    
+                    showToast('Вам выпал: ' + winner.title, 'success');
+                    isSpinning = false;
+                }
+            }
+            
+            requestAnimationFrame(animate);
+        }
+        
+        spinBtn.addEventListener('click', spinWheel);
+        pickerGenre.addEventListener('change', () => {
+            if (!isSpinning) {
+                wheelMovies = getFilteredMovies();
+                drawWheel();
+            }
+        });
+        
+        wheelMovies = getFilteredMovies();
+        drawWheel();
+    }
 })();

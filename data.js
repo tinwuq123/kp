@@ -35,7 +35,7 @@ const MOVIES_DATA = [
         top5: true,
         inTheaters: false,
         comingSoon: false,
-        trailerFile: "опен.mp4"
+        trailerFile: "Опен.mp4"
     },
     { 
         id: 3, 
@@ -54,7 +54,7 @@ const MOVIES_DATA = [
         top5: true,
         inTheaters: false,
         comingSoon: false,
-        trailerFile: "инт.mp4"
+        trailerFile: "Инт.mp4"
     },
     { 
         id: 4, 
@@ -73,7 +73,7 @@ const MOVIES_DATA = [
         top5: true,
         inTheaters: false,
         comingSoon: false,
-        trailerFile: "поб.mp4"
+        trailerFile: "Поб.mp4"
     },
     { 
         id: 5, 
@@ -130,7 +130,7 @@ const MOVIES_DATA = [
         top5: false,
         inTheaters: false,
         comingSoon: false,
-        trailerFile: "матр.mp4"
+        trailerFile: "Матр.mp4"
     },
     { 
         id: 8, 
@@ -358,7 +358,7 @@ const MOVIES_DATA = [
         top5: false,
         inTheaters: false,
         comingSoon: false,
-        trailerFile: "спи.mp4"
+        trailerFile: "Спи.mp4"
     },
     { 
         id: 20, 

@@ -1424,3 +1424,120 @@ body {
     opacity: 1;
     transform: scale(1.1);
 }
+
+.picker-container {
+    max-width: 500px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.picker-genre-select {
+    margin-bottom: 24px;
+}
+
+.picker-genre-select label {
+    display: block;
+    margin-bottom: 8px;
+    color: #9CA3AF;
+    font-size: 14px;
+}
+
+.picker-select {
+    padding: 10px 20px;
+    background: #1a1f2e;
+    border: 1px solid #2a2f45;
+    border-radius: 8px;
+    color: white;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.wheel-wrapper {
+    position: relative;
+    width: 400px;
+    height: 400px;
+    margin: 0 auto;
+}
+
+#wheel-canvas {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    box-shadow: 0 0 20px rgba(245, 197, 24, 0.2);
+}
+
+.spin-btn {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: #F5C518;
+    color: #0a0e17;
+    border: 3px solid #1a1f2e;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 800;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+
+.spin-btn:hover {
+    transform: translate(-50%, -50%) scale(1.05);
+    box-shadow: 0 0 20px rgba(245, 197, 24, 0.5);
+}
+
+.picker-result {
+    margin-top: 24px;
+    min-height: 120px;
+}
+
+.picker-result-movie {
+    background: #1a1f2e;
+    border-radius: 12px;
+    padding: 20px;
+    animation: resultPop 0.5s ease;
+}
+
+@keyframes resultPop {
+    0% {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.picker-result-title {
+    font-size: 22px;
+    font-weight: 800;
+    color: #F5C518;
+    margin-bottom: 8px;
+}
+
+.picker-result-meta {
+    color: #9CA3AF;
+    font-size: 14px;
+}
+
+@media (max-width: 768px) {
+    .wheel-wrapper {
+        width: 300px;
+        height: 300px;
+    }
+    
+    .spin-btn {
+        width: 60px;
+        height: 60px;
+        font-size: 12px;
+    }
+    
+    .picker-result-title {
+        font-size: 18px;
+    }
+}

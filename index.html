@@ -140,6 +140,25 @@
                 </div>
             </div>
         </section>
+        <section class="section picker-section" id="picker">
+            <div class="container">
+                <h2 class="section-title">Колесо фортуны</h2>
+                <p class="section-subtitle">Не можешь решиться? Крути колесо и смотри что выпадет!</p>
+                <div class="picker-container">
+                    <div class="picker-genre-select">
+                        <label>Выбери жанр:</label>
+                        <select id="picker-genre" class="picker-select">
+                            <option value="all">Все жанры</option>
+                        </select>
+                    </div>
+                    <div class="wheel-wrapper">
+                        <canvas id="wheel-canvas" width="400" height="400"></canvas>
+                        <button class="spin-btn" id="spin-btn">Крутить!</button>
+                    </div>
+                    <div class="picker-result" id="picker-result"></div>
+                </div>
+            </div>
+        </section>
     </main>
     <div class="modal-overlay" id="movie-modal">
         <div class="modal movie-modal">

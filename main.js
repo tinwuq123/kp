@@ -198,45 +198,46 @@
     }
 
     function openMovieModal(movie) {
-        const modal = document.getElementById('movie-modal');
-        const content = document.getElementById('movie-modal-content');
-        
-        if (!modal || !content) return;
-        
-        const trailerFile = movie.trailerFile || 'trailers/default.mp4';
-        
-        content.innerHTML = `
-            <img class="movie-modal-poster" src="${movie.poster || 'https://via.placeholder.com/300x450?text=No+Poster'}" alt="${movie.title}" onerror="this.src='https://via.placeholder.com/300x450?text=No+Image'">
-            <div class="movie-modal-title">${movie.title}</div>
-            <div class="movie-modal-year">${movie.year} · ${movie.duration || '—'}</div>
-            <div class="movie-modal-rating">⭐ ${movie.rating > 0 ? movie.rating.toFixed(1) : '—'}</div>
-            <div class="movie-modal-description">${movie.description || 'Описание отсутствует'}</div>
-            <div class="movie-modal-genres">
-                ${movie.genre.map(g => `<span class="genre-tag">${g}</span>`).join('')}
+    const modal = document.getElementById('movie-modal');
+    const content = document.getElementById('movie-modal-content');
+    
+    if (!modal || !content) return;
+    
+    const trailerFile = movie.trailerFile || 'trailers/default.mp4';
+    
+    content.innerHTML = `
+        <img class="movie-modal-poster" src="${movie.poster || 'https://via.placeholder.com/300x450?text=No+Poster'}" alt="${movie.title}" onerror="this.src='https://via.placeholder.com/300x450?text=No+Image'">
+        <div class="movie-modal-title">${movie.title}</div>
+        <div class="movie-modal-year">${movie.year} · ${movie.duration || '—'} · ${movie.age || '—'}</div>
+        <div class="movie-modal-director">Режиссёр: ${movie.director || '—'}</div>
+        <div class="movie-modal-rating">⭐ ${movie.rating > 0 ? movie.rating.toFixed(1) : '—'}</div>
+        <div class="movie-modal-description">${movie.description || 'Описание отсутствует'}</div>
+        <div class="movie-modal-genres">
+            ${movie.genre.map(g => `<span class="genre-tag">${g}</span>`).join('')}
+        </div>
+        ${movie.cast ? `
+        <div class="movie-modal-cast">
+            <strong>В ролях:</strong>
+            <div class="cast-list">
+                ${movie.cast.map(c => `<span class="cast-item">${c}</span>`).join('')}
             </div>
-            ${movie.cast ? `
-            <div class="movie-modal-cast">
-                <strong>В ролях:</strong>
-                <div class="cast-list">
-                    ${movie.cast.map(c => `<span class="cast-item">${c}</span>`).join('')}
-                </div>
-            </div>` : ''}
-            <div class="movie-modal-trailer">
-                <button class="trailer-btn" id="play-trailer-btn">▶ Смотреть трейлер</button>
-            </div>
-        `;
-        
-        modal.classList.add('active');
-        document.body.style.overflow = 'hidden';
-        
-        const trailerBtn = document.getElementById('play-trailer-btn');
-        if (trailerBtn) {
-            trailerBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                openVideoModal(trailerFile);
-            });
-        }
+        </div>` : ''}
+        <div class="movie-modal-trailer">
+            <button class="trailer-btn" id="play-trailer-btn">▶ Смотреть трейлер</button>
+        </div>
+    `;
+    
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    
+    const trailerBtn = document.getElementById('play-trailer-btn');
+    if (trailerBtn) {
+        trailerBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openVideoModal(trailerFile);
+        });
     }
+}
 
     function closeMovieModal() {
         const modal = document.getElementById('movie-modal');
@@ -595,6 +596,7 @@
         initSlider();
         initContactForm();
         initWheelPicker();
+        initQuotesAndPromo();
         
         const favBtn = document.getElementById('favorites-btn');
         if (favBtn) favBtn.addEventListener('click', showFavoritesModal);
@@ -637,13 +639,29 @@
                 if (e.target === contactModalOverlay) closeContactModal();
             });
         }
+
+        const footerFavorites = document.getElementById('footer-favorites');
+        if (footerFavorites) footerFavorites.addEventListener('click', (e) => {
+            e.preventDefault();
+            showFavoritesModal();
+        });
         
+        const footerContact = document.getElementById('footer-contact');
+        if (footerContact) footerContact.addEventListener('click', (e) => {
+            e.preventDefault();
+            openContactModal();
+        });
+
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                closeMovieModal();
-                closeVideoModal();
-                closeFavoritesModal();
-                closeContactModal();
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+            
+            switch (e.key.toLowerCase()) {
+                case 'r':
+                    e.preventDefault();
+                    const randomMovie = MOVIES_DATA[Math.floor(Math.random() * MOVIES_DATA.length)];
+                    openMovieModal(randomMovie);
+                    showToast('Вам выпал: ' + randomMovie.title);
+                    break;
             }
         });
         
@@ -813,5 +831,58 @@
         
         wheelMovies = getFilteredMovies();
         drawWheel();
+    }
+
+        function initQuotesAndPromo() {
+        const quoteText = document.getElementById('quote-text');
+        const quoteAuthor = document.getElementById('quote-author');
+        const quoteBtn = document.getElementById('new-quote-btn');
+        const promoCodeSpan = document.getElementById('promo-code');
+        const promoBtn = document.getElementById('promo-btn');
+        
+        quoteText.textContent = 'Нажми кнопку, чтобы получить цитату из фильма';
+        quoteAuthor.textContent = '';
+        promoCodeSpan.textContent = 'Нажми "Сгенерировать"';
+        
+        function getRandomQuote() {
+            const randomIndex = Math.floor(Math.random() * QUOTES_DATA.length);
+            return QUOTES_DATA[randomIndex];
+        }
+        
+        function displayRandomQuote() {
+            const quote = getRandomQuote();
+            quoteText.style.opacity = '0';
+            quoteText.style.transform = 'translateY(10px)';
+            
+            setTimeout(() => {
+                quoteText.textContent = quote.text;
+                quoteAuthor.textContent = '— ' + quote.author;
+                quoteText.style.opacity = '1';
+                quoteText.style.transform = 'translateY(0)';
+            }, 300);
+        }
+        
+        function generatePromoCode() {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            let code = 'CINE-';
+            for (let i = 0; i < 6; i++) {
+                code += chars[Math.floor(Math.random() * chars.length)];
+            }
+            return code;
+        }
+        
+        function displayRandomPromoCode() {
+            const newCode = generatePromoCode();
+            promoCodeSpan.textContent = newCode;
+            promoCodeSpan.style.animation = 'none';
+            promoCodeSpan.offsetHeight;
+            promoCodeSpan.style.animation = 'resultPop 0.5s ease';
+            showToast('Промокод сгенерирован!', 'success');
+        }
+        
+        quoteBtn.addEventListener('click', displayRandomQuote);
+        promoBtn.addEventListener('click', displayRandomPromoCode);
+        
+        quoteText.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
     }
 })();

@@ -35,6 +35,8 @@
             <nav class="nav" id="main-nav">
                 <a href="#home" class="nav-link active" data-section="home">Главная</a>
                 <a href="#catalog" class="nav-link" data-section="catalog">Каталог</a>
+                <a href="#picker" class="nav-link" data-section="picker">Колесо</a>
+                <a href="#quotes" class="nav-link" data-section="quotes">Цитаты</a>
             </nav>
             <div class="header-actions">
                 <button class="btn-icon" id="favorites-btn" title="Избранное (0)">
@@ -159,7 +161,50 @@
                 </div>
             </div>
         </section>
+        <section class="section quotes-section" id="quotes">
+            <div class="container">
+                <h2 class="section-title">Цитата дня</h2>
+                <div class="quote-card" id="quote-card">
+                    <div class="quote-icon">"</div>
+                    <p class="quote-text" id="quote-text">Нажми на кнопку, чтобы получить цитату из фильма</p>
+                    <p class="quote-author" id="quote-author"></p>
+                </div>
+                <button class="btn btn-primary quote-btn" id="new-quote-btn">Новая цитата</button>
+
+                <div class="promo-section" id="promo-section">
+                    <h3 class="promo-title">Твой промокод на скидку</h3>
+                    <div class="promo-code-box" id="promo-code-box">
+                        <span class="promo-code" id="promo-code">Нажми "Сгенерировать"</span>
+                    </div>
+                    <button class="btn btn-secondary promo-btn" id="promo-btn">Сгенерировать промокод</button>
+                    <p class="promo-hint">Скидка 15% на подписку — действуй!</p>
+                </div>
+            </div>
+        </section>
     </main>
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-col">
+                    <div class="logo">
+                        <span class="logo-icon">CV</span>
+                        <span class="logo-text">CinemaVault</span>
+                    </div>
+                    <p>Твой гид в мире кино. Более 500 фильмов с рейтингами, трейлерами и подробностями.</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Навигация</h4>
+                    <a href="#home">Главная</a>
+                    <a href="#catalog">Каталог</a>
+                    <a href="#picker">Колесо</a>
+                    <a href="#quotes">Цитаты</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2026 CinemaVault. Все права защищены.</p>
+            </div>
+        </div>
+    </footer>
     <div class="modal-overlay" id="movie-modal">
         <div class="modal movie-modal">
             <button class="modal-close" id="movie-modal-close">×</button>

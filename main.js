@@ -1,12 +1,109 @@
 (function() {
     'use strict';
 
+    //фон threejs
+    function initThreeBackground() {
+        const canvas = document.getElementById('three-bg');
+        if (!canvas) return;
+        
+        const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 30;
+
+        //частички на фоне
+        const particleCount = 800;
+        const positions = new Float32Array(particleCount * 3);
+        const colors = new Float32Array(particleCount * 3);
+
+        for (let i = 0; i < particleCount; i++) {
+            positions[i * 3] = (Math.random() - 0.5) * 80;
+            positions[i * 3 + 1] = (Math.random() - 0.5) * 80;
+            positions[i * 3 + 2] = (Math.random() - 0.5) * 80;
+            colors[i * 3] = 0.96;
+            colors[i * 3 + 1] = 0.77;
+            colors[i * 3 + 2] = 0.09;
+        }
+
+        const geometry = new THREE.BufferGeometry();
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+        const material = new THREE.PointsMaterial({
+            size: 0.15,
+            vertexColors: true,
+            transparent: true,
+            opacity: 0.6,
+            blending: THREE.AdditiveBlending
+        });
+
+        const particles = new THREE.Points(geometry, material);
+        scene.add(particles);
+
+        //бублик на фоне
+        const torusGeom = new THREE.TorusKnotGeometry(8, 2, 100, 16);
+        const torusMat = new THREE.MeshBasicMaterial({
+            color: 0xF5C518,
+            wireframe: true,
+            transparent: true,
+            opacity: 0.04
+        });
+        const torusKnot = new THREE.Mesh(torusGeom, torusMat);
+        torusKnot.position.set(20, 10, -20);
+        scene.add(torusKnot);
+
+        //многогранник на фоне
+        const icoGeom = new THREE.IcosahedronGeometry(6, 1);
+        const icoMat = new THREE.MeshBasicMaterial({
+            color: 0xF5C518,
+            wireframe: true,
+            transparent: true,
+            opacity: 0.03
+        });
+        const icosahedron = new THREE.Mesh(icoGeom, icoMat);
+        icosahedron.position.set(-20, -10, -15);
+        scene.add(icosahedron);
+
+        //реакция на курсор
+        let mouseX = 0, mouseY = 0;
+        document.addEventListener('mousemove', (e) => {
+            mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+            mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
+        });
+
+        //аним вращения
+        function animate() {
+            requestAnimationFrame(animate);
+            particles.rotation.y += 0.0003;
+            particles.rotation.x += 0.0001;
+            particles.rotation.y += mouseX * 0.0005;
+            particles.rotation.x += mouseY * 0.0003;
+            torusKnot.rotation.x += 0.002;
+            torusKnot.rotation.y += 0.003;
+            icosahedron.rotation.x -= 0.002;
+            icosahedron.rotation.z += 0.001;
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    }
+
+    //переменные
     let currentPage = 1;
     let currentGenre = 'all';
     let currentSort = 'rating';
     let searchTerm = '';
     let favorites = JSON.parse(localStorage.getItem('cinemavault_favorites') || '[]');
 
+    //экран загрузки
     function initLoadingScreen() {
         const loadingScreen = document.getElementById('loading-screen');
         const loaderProgress = document.getElementById('loader-progress');
@@ -29,37 +126,75 @@
     document.body.style.overflow = 'hidden';
     initLoadingScreen();
 
+    //курсор
     function initCursorFollower() {
         const follower = document.getElementById('cursor-follower');
         if (!follower) return;
 
         let currentX = 0, currentY = 0;
         let targetX = 0, targetY = 0;
+        let isHovering = false;
+
+        const hoverTargets = [
+            'a', 'button', '.movie-card', '.slider-movie-card', 
+            '.genre-btn', '.nav-link', '.card-fav-btn', '.spin-btn', 
+            '.quote-btn', '.promo-btn', '.modal-close', '.trailer-btn',
+            '.slider-btn', '.btn', '.load-more-btn', '.fav-remove-btn',
+            '.form-submit-btn', '.winner-details-btn'
+        ];
+        const targetsSelector = hoverTargets.join(',');
+        
+        function updateHoverState() {
+            const elementUnderCursor = document.elementFromPoint(targetX, targetY);
+            const isOverTarget = elementUnderCursor?.matches?.(targetsSelector) || 
+                                 elementUnderCursor?.closest?.(targetsSelector);
+            
+            if (isOverTarget && !isHovering) {
+                isHovering = true;
+                document.body.classList.add('has-hover-target');
+            } else if (!isOverTarget && isHovering) {
+                isHovering = false;
+                document.body.classList.remove('has-hover-target');
+            }
+        }
 
         document.addEventListener('mousemove', (e) => {
             targetX = e.clientX;
             targetY = e.clientY;
+            updateHoverState();
+            
+            if (isHovering) {
+                follower.style.left = targetX + 'px';
+                follower.style.top = targetY + 'px';
+            }
         });
 
-        function update() {
-            currentX += (targetX - currentX) * 0.15;
-            currentY += (targetY - currentY) * 0.15;
-            follower.style.left = currentX + 'px';
-            follower.style.top = currentY + 'px';
-            requestAnimationFrame(update);
+        function animate() {
+            if (isHovering) {
+                currentX += (targetX - currentX) * 0.2;
+                currentY += (targetY - currentY) * 0.2;
+                follower.style.left = currentX + 'px';
+                follower.style.top = currentY + 'px';
+            }
+            requestAnimationFrame(animate);
         }
-        update();
+        animate();
 
-        const addHover = () => follower.classList.add('hovering');
-        const removeHover = () => follower.classList.remove('hovering');
-
-        document.querySelectorAll('a, button, .movie-card, .slider-movie-card').forEach(el => {
-            el.addEventListener('mouseenter', addHover);
-            el.addEventListener('mouseleave', removeHover);
+        document.querySelectorAll(targetsSelector).forEach(el => {
+            el.addEventListener('mousedown', () => {
+                if (isHovering) {
+                    follower.style.transform = 'translate(-50%, -50%) scale(0.8)';
+                }
+            });
+            el.addEventListener('mouseup', () => {
+                if (isHovering) {
+                    follower.style.transform = 'translate(-50%, -50%) scale(1)';
+                }
+            });
         });
     }
-    initCursorFollower();
 
+    //хедер, прогресс бар при скролле
     function initHeaderScroll() {
         const header = document.getElementById('header');
         const scrollProgress = document.getElementById('scroll-progress');
@@ -77,6 +212,7 @@
     }
     initHeaderScroll();
 
+    //бургер
     function initMobileNav() {
         const hamburger = document.getElementById('hamburger');
         const nav = document.getElementById('main-nav');
@@ -97,6 +233,7 @@
     }
     initMobileNav();
 
+    //плавный скролл при клике по навигации
     function initSmoothScroll() {
         document.querySelectorAll('a[href^="#"]').forEach(link => {
             link.addEventListener('click', (e) => {
@@ -110,6 +247,7 @@
     }
     initSmoothScroll();
 
+    //подсветка навигации при скролле
     function initActiveNav() {
         const sections = document.querySelectorAll('section[id]');
         const navLinks = document.querySelectorAll('.nav-link');
@@ -135,6 +273,7 @@
     }
     initActiveNav();
 
+    //уведы
     function showToast(message, type = 'info') {
         let container = document.getElementById('toast-container');
         if (!container) {
@@ -162,6 +301,7 @@
         }, 3000);
     }
 
+    //не знаю что посмотреть
     function initRandomPick() {
         const btn = document.getElementById('random-pick-btn');
         if (btn) {
@@ -173,6 +313,7 @@
         }
     }
 
+    //трейлеры
     function openVideoModal(videoFile) {
         const modal = document.getElementById('video-modal');
         const video = document.getElementById('trailer-video');
@@ -197,47 +338,48 @@
         document.body.style.overflow = '';
     }
 
+    //модалка с деталями фильма
     function openMovieModal(movie) {
-    const modal = document.getElementById('movie-modal');
-    const content = document.getElementById('movie-modal-content');
-    
-    if (!modal || !content) return;
-    
-    const trailerFile = movie.trailerFile || 'trailers/default.mp4';
-    
-    content.innerHTML = `
-        <img class="movie-modal-poster" src="${movie.poster || 'https://via.placeholder.com/300x450?text=No+Poster'}" alt="${movie.title}" onerror="this.src='https://via.placeholder.com/300x450?text=No+Image'">
-        <div class="movie-modal-title">${movie.title}</div>
-        <div class="movie-modal-year">${movie.year} · ${movie.duration || '—'} · ${movie.age || '—'}</div>
-        <div class="movie-modal-director">Режиссёр: ${movie.director || '—'}</div>
-        <div class="movie-modal-rating">⭐ ${movie.rating > 0 ? movie.rating.toFixed(1) : '—'}</div>
-        <div class="movie-modal-description">${movie.description || 'Описание отсутствует'}</div>
-        <div class="movie-modal-genres">
-            ${movie.genre.map(g => `<span class="genre-tag">${g}</span>`).join('')}
-        </div>
-        ${movie.cast ? `
-        <div class="movie-modal-cast">
-            <strong>В ролях:</strong>
-            <div class="cast-list">
-                ${movie.cast.map(c => `<span class="cast-item">${c}</span>`).join('')}
+        const modal = document.getElementById('movie-modal');
+        const content = document.getElementById('movie-modal-content');
+        
+        if (!modal || !content) return;
+        
+        const trailerFile = movie.trailerFile || 'trailers/default.mp4';
+        
+        content.innerHTML = `
+            <img class="movie-modal-poster" src="${movie.poster || 'https://via.placeholder.com/300x450?text=No+Poster'}" alt="${movie.title}" onerror="this.src='https://via.placeholder.com/300x450?text=No+Image'">
+            <div class="movie-modal-title">${movie.title}</div>
+            <div class="movie-modal-year">${movie.year} · ${movie.duration || '—'} · ${movie.age || '—'}</div>
+            <div class="movie-modal-director">Режиссёр: ${movie.director || '—'}</div>
+            <div class="movie-modal-rating"><img src="звезда.png" class="star-icon"> ${movie.rating > 0 ? movie.rating.toFixed(1) : '—'}</div>
+            <div class="movie-modal-description">${movie.description || 'Описание отсутствует'}</div>
+            <div class="movie-modal-genres">
+                ${movie.genre.map(g => `<span class="genre-tag">${g}</span>`).join('')}
             </div>
-        </div>` : ''}
-        <div class="movie-modal-trailer">
-            <button class="trailer-btn" id="play-trailer-btn">▶ Смотреть трейлер</button>
-        </div>
-    `;
-    
-    modal.classList.add('active');
-    document.body.style.overflow = 'hidden';
-    
-    const trailerBtn = document.getElementById('play-trailer-btn');
-    if (trailerBtn) {
-        trailerBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            openVideoModal(trailerFile);
-        });
+            ${movie.cast ? `
+            <div class="movie-modal-cast">
+                <strong>В ролях:</strong>
+                <div class="cast-list">
+                    ${movie.cast.map(c => `<span class="cast-item">${c}</span>`).join('')}
+                </div>
+            </div>` : ''}
+            <div class="movie-modal-trailer">
+                <button class="trailer-btn" id="play-trailer-btn">▶ Смотреть трейлер</button>
+            </div>
+        `;
+        
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        
+        const trailerBtn = document.getElementById('play-trailer-btn');
+        if (trailerBtn) {
+            trailerBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                openVideoModal(trailerFile);
+            });
+        }
     }
-}
 
     function closeMovieModal() {
         const modal = document.getElementById('movie-modal');
@@ -247,6 +389,7 @@
         }
     }
 
+    //карточки фильма
     function createMovieCard(movie) {
         const isFav = favorites.includes(movie.id);
         const card = document.createElement('div');
@@ -257,7 +400,7 @@
                 <div class="movie-title">${movie.title}</div>
                 <div class="movie-meta">
                     <span>${movie.year}</span>
-                    <span class="movie-rating">⭐ ${movie.rating > 0 ? movie.rating.toFixed(1) : '—'}</span>
+                    <span class="movie-rating"><img src="звезда.png" class="star-icon"> ${movie.rating > 0 ? movie.rating.toFixed(1) : '—'}</span>
                 </div>
             </div>
             <button class="card-fav-btn ${isFav ? 'active' : ''}" data-id="${movie.id}">
@@ -275,6 +418,7 @@
         return card;
     }
 
+    //добав и удал из избранного
     function toggleFavorite(movieId, btn) {
         const index = favorites.indexOf(movieId);
         if (index === -1) {
@@ -292,6 +436,7 @@
         updateFavButtonCount();
     }
 
+    //модалка избранного
     function showFavoritesModal() {
         const modal = document.getElementById('favorites-modal');
         const list = document.getElementById('favorites-list');
@@ -342,6 +487,7 @@
         document.body.style.overflow = '';
     }
 
+    //модалка обр связи
     function openContactModal() {
         const modal = document.getElementById('contact-modal');
         if (modal) {
@@ -358,23 +504,54 @@
         document.body.style.overflow = '';
     }
 
+    //форма обр связи с прогресс баром
     function initContactForm() {
         const form = document.getElementById('contact-form');
-        if (form) {
-            form.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const name = document.getElementById('form-name')?.value || '';
-                const email = document.getElementById('form-email')?.value || '';
-                const message = document.getElementById('form-message')?.value || '';
-                
-                console.log('Сообщение:', { name, email, message });
-                showToast('Сообщение отправлено! Спасибо, ' + name);
-                form.reset();
-                closeContactModal();
-            });
+        if (!form) return;
+        
+        const nameInput = document.getElementById('form-name');
+        const emailInput = document.getElementById('form-email');
+        const messageInput = document.getElementById('form-message');
+        
+        const progressBar = document.createElement('div');
+        progressBar.className = 'form-progress';
+        const progressFill = document.createElement('div');
+        progressFill.className = 'form-progress-fill';
+        progressBar.appendChild(progressFill);
+        form.appendChild(progressBar);
+        
+        function updateFormProgress() {
+            let filled = 0;
+            if (nameInput && nameInput.value.trim() !== '') filled++;  
+            if (emailInput && emailInput.value.trim() !== '') filled++; 
+            if (messageInput && messageInput.value.trim() !== '') filled++; 
+            const percent = (filled / 3) * 100;
+            progressFill.style.width = percent + '%';
         }
+        
+        if (nameInput) nameInput.addEventListener('input', updateFormProgress);
+        if (emailInput) emailInput.addEventListener('input', updateFormProgress);
+        if (messageInput) messageInput.addEventListener('input', updateFormProgress);
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = nameInput?.value || '';
+            const email = emailInput?.value || '';
+            const message = messageInput?.value || '';
+            
+            console.log('Сообщение:', { name, email, message });
+            showToast('Сообщение отправлено! Спасибо, ' + name);
+            form.reset();
+
+            setTimeout(() => {
+                progressFill.style.width = '0%';
+            }, 100);
+            
+            closeContactModal();
+        });
     }
 
+    //колво фильмов в избранном
     function updateFavButtonCount() {
         const favBtn = document.getElementById('favorites-btn');
         if (favBtn) {
@@ -382,6 +559,7 @@
         }
     }
 
+    //отобр фильмов в двух блоках
     function renderMovies() {
         const theatersGrid = document.getElementById('theaters-grid');
         if (theatersGrid) {
@@ -400,6 +578,7 @@
         renderCatalog();
     }
 
+    //кат фильмов фильтрация и пагинация
     function renderCatalog() {
         const container = document.getElementById('catalog-grid');
         if (!container) return;
@@ -444,6 +623,7 @@
         renderCatalog();
     }
 
+    //поиск, жанр, сортировка
     function initCatalogFilters() {
         const searchInput = document.getElementById('search-input');
         const genreBtns = document.querySelectorAll('.genre-btn');
@@ -481,6 +661,7 @@
         }
     }
 
+    //слайдер
     function initSlider() {
         const topMovies = MOVIES_DATA.filter(m => m.top5 === true);
         const track = document.getElementById('slider-track');
@@ -511,7 +692,7 @@
                     <div class="slider-movie-overlay">
                         <div class="slider-movie-title">${movie.title}</div>
                         <div class="slider-movie-meta">${movie.year} · ${movie.genre[0] || movie.genre}</div>
-                        <div class="slider-movie-rating">⭐ ${movie.rating > 0 ? movie.rating.toFixed(1) : '—'}</div>
+                        <div class="slider-movie-rating"><img src="звезда.png" class="star-icon"> ${movie.rating > 0 ? movie.rating.toFixed(1) : '—'}</div>
                     </div>
                 </div>
             `;
@@ -583,92 +764,38 @@
         goToSlide(0);
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-        initLoadingScreen();
-        initCursorFollower();
-        initHeaderScroll();
-        initMobileNav();
-        initSmoothScroll();
-        initActiveNav();
-        initRandomPick();
-        renderMovies();
-        initCatalogFilters();
-        initSlider();
-        initContactForm();
-        initWheelPicker();
-        initQuotesAndPromo();
+    //аним появ блоков при скролле
+    function initScrollReveal() {
+        const revealElements = document.querySelectorAll(
+            '.hero, .top-section, .theaters-section, .coming-section, ' +
+            '.catalog-section, .picker-section, .quotes-section'
+        );
         
-        const favBtn = document.getElementById('favorites-btn');
-        if (favBtn) favBtn.addEventListener('click', showFavoritesModal);
-        
-        const contactBtn = document.getElementById('contact-btn');
-        if (contactBtn) contactBtn.addEventListener('click', openContactModal);
-        
-        const movieModalClose = document.getElementById('movie-modal-close');
-        const movieModalOverlay = document.getElementById('movie-modal');
-        if (movieModalClose) movieModalClose.addEventListener('click', closeMovieModal);
-        if (movieModalOverlay) {
-            movieModalOverlay.addEventListener('click', (e) => {
-                if (e.target === movieModalOverlay) closeMovieModal();
-            });
-        }
-        
-        const videoModalClose = document.getElementById('video-modal-close');
-        const videoModalOverlay = document.getElementById('video-modal');
-        if (videoModalClose) videoModalClose.addEventListener('click', closeVideoModal);
-        if (videoModalOverlay) {
-            videoModalOverlay.addEventListener('click', (e) => {
-                if (e.target === videoModalOverlay) closeVideoModal();
-            });
-        }
-        
-        const favModalClose = document.getElementById('favorites-modal-close');
-        const favModalOverlay = document.getElementById('favorites-modal');
-        if (favModalClose) favModalClose.addEventListener('click', closeFavoritesModal);
-        if (favModalOverlay) {
-            favModalOverlay.addEventListener('click', (e) => {
-                if (e.target === favModalOverlay) closeFavoritesModal();
-            });
-        }
-        
-        const contactModalClose = document.getElementById('contact-modal-close');
-        const contactModalOverlay = document.getElementById('contact-modal');
-        if (contactModalClose) contactModalClose.addEventListener('click', closeContactModal);
-        if (contactModalOverlay) {
-            contactModalOverlay.addEventListener('click', (e) => {
-                if (e.target === contactModalOverlay) closeContactModal();
-            });
-        }
-
-        const footerFavorites = document.getElementById('footer-favorites');
-        if (footerFavorites) footerFavorites.addEventListener('click', (e) => {
-            e.preventDefault();
-            showFavoritesModal();
+        revealElements.forEach(el => {
+            el.classList.add('reveal-on-scroll');
         });
         
-        const footerContact = document.getElementById('footer-contact');
-        if (footerContact) footerContact.addEventListener('click', (e) => {
-            e.preventDefault();
-            openContactModal();
-        });
-
-        document.addEventListener('keydown', (e) => {
-            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-            
-            switch (e.key.toLowerCase()) {
-                case 'r':
-                    e.preventDefault();
-                    const randomMovie = MOVIES_DATA[Math.floor(Math.random() * MOVIES_DATA.length)];
-                    openMovieModal(randomMovie);
-                    showToast('Вам выпал: ' + randomMovie.title);
-                    break;
-            }
-        });
+        function isElementInViewport(el) {
+            const rect = el.getBoundingClientRect();
+            return rect.top < window.innerHeight - 100;
+        }
         
-        updateFavButtonCount();
-    });
+        function revealVisibleElements() {
+            const elements = document.querySelectorAll('.reveal-on-scroll:not(.revealed)');
+            elements.forEach(el => {
+                if (isElementInViewport(el)) {
+                    el.classList.add('revealed');
+                }
+            });
+        }
+        
+        revealVisibleElements();
+        window.addEventListener('scroll', revealVisibleElements);
+        window.addEventListener('resize', revealVisibleElements);
+    }
 
-        function initWheelPicker() {
+    //колесо
+    function initWheelPicker() {
         const canvas = document.getElementById('wheel-canvas');
         if (!canvas) return;
         
@@ -803,7 +930,7 @@
                     resultDiv.innerHTML = `
                         <div class="picker-result-movie">
                             <div class="picker-result-title">${winner.title}</div>
-                            <div class="picker-result-meta">${winner.year} · ${winner.genre.join(', ')} · ⭐ ${winner.rating}</div>
+                            <div class="picker-result-meta">${winner.year} · ${winner.genre.join(', ')} · <img src="звезда.png" class="star-icon"> ${winner.rating}</div>
                             <button class="btn btn-primary winner-details-btn" style="margin-top:12px;">Подробнее</button>
                         </div>
                     `;
@@ -833,7 +960,8 @@
         drawWheel();
     }
 
-        function initQuotesAndPromo() {
+    //цитаты и промокоды
+    function initQuotesAndPromo() {
         const quoteText = document.getElementById('quote-text');
         const quoteAuthor = document.getElementById('quote-author');
         const quoteBtn = document.getElementById('new-quote-btn');
@@ -885,4 +1013,84 @@
         
         quoteText.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
     }
+
+    //запуск всего сайта
+    document.addEventListener('DOMContentLoaded', () => {
+        initThreeBackground();
+        initLoadingScreen();
+        initCursorFollower();
+        initHeaderScroll();
+        initMobileNav();
+        initSmoothScroll();
+        initActiveNav();
+        initRandomPick();
+        renderMovies();
+        initCatalogFilters();
+        initSlider();
+        initContactForm();
+        initWheelPicker();
+        initQuotesAndPromo();
+        initScrollReveal();
+        
+        //кнопки модалок
+        const favBtn = document.getElementById('favorites-btn');
+        if (favBtn) favBtn.addEventListener('click', showFavoritesModal);
+        
+        const contactBtn = document.getElementById('contact-btn');
+        if (contactBtn) contactBtn.addEventListener('click', openContactModal);
+        
+        //закрыт модалок по крестику и по фону
+        const movieModalClose = document.getElementById('movie-modal-close');
+        const movieModalOverlay = document.getElementById('movie-modal');
+        if (movieModalClose) movieModalClose.addEventListener('click', closeMovieModal);
+        if (movieModalOverlay) {
+            movieModalOverlay.addEventListener('click', (e) => {
+                if (e.target === movieModalOverlay) closeMovieModal();
+            });
+        }
+        
+        const videoModalClose = document.getElementById('video-modal-close');
+        const videoModalOverlay = document.getElementById('video-modal');
+        if (videoModalClose) videoModalClose.addEventListener('click', closeVideoModal);
+        if (videoModalOverlay) {
+            videoModalOverlay.addEventListener('click', (e) => {
+                if (e.target === videoModalOverlay) closeVideoModal();
+            });
+        }
+        
+        const favModalClose = document.getElementById('favorites-modal-close');
+        const favModalOverlay = document.getElementById('favorites-modal');
+        if (favModalClose) favModalClose.addEventListener('click', closeFavoritesModal);
+        if (favModalOverlay) {
+            favModalOverlay.addEventListener('click', (e) => {
+                if (e.target === favModalOverlay) closeFavoritesModal();
+            });
+        }
+        
+        const contactModalClose = document.getElementById('contact-modal-close');
+        const contactModalOverlay = document.getElementById('contact-modal');
+        if (contactModalClose) contactModalClose.addEventListener('click', closeContactModal);
+        if (contactModalOverlay) {
+            contactModalOverlay.addEventListener('click', (e) => {
+                if (e.target === contactModalOverlay) closeContactModal();
+            });
+        }
+
+        //горячая клавиша
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+            
+            switch (e.key.toLowerCase()) {
+                case 'r':
+                    e.preventDefault();
+                    const randomMovie = MOVIES_DATA[Math.floor(Math.random() * MOVIES_DATA.length)];
+                    openMovieModal(randomMovie);
+                    showToast('Вам выпал: ' + randomMovie.title);
+                    break;
+            }
+        });
+        
+        updateFavButtonCount();
+    });
+
 })();
